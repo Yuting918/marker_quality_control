@@ -1,0 +1,459 @@
+---
+title: "QC_2019_10_29"
+author: "Yuting Qiu"
+output: html_notebook
+---
+
+Description: Now we would start with the lines that we used in ICIMapping.
+
+```{r}
+library(readxl)
+D38 <- read_excel("with_line_number_sdremove.xlsx", sheet = "DRIL38")
+D58 <- read_excel("with_line_number_sdremove.xlsx", sheet = "DRIL58")
+D68 <- read_excel("with_line_number_sdremove.xlsx", sheet = "DRIL68")
+D78 <- read_excel("with_line_number_sdremove.xlsx", sheet = "DRIL78")
+
+D38_L <- read_excel("ICIM_lines.xlsx", sheet = "DRIL38")
+D58_L <- read_excel("ICIM_lines.xlsx", sheet = "DRIL58")
+D68_L <- read_excel("ICIM_lines.xlsx", sheet = "DRIL68")
+D78_L <- read_excel("ICIM_lines.xlsx", sheet = "DRIL78")
+
+D38.1 <- merge(D38, D38_L, by.x = "D38", by.y = "D38")
+D58.1 <- merge(D58, D58_L, by.x = "D58", by.y = "D58")
+D68.1 <- merge(D68, D68_L, by.x = "D68", by.y = "D68")
+D78.1 <- merge(D78, D78_L, by.x = "D78", by.y = "D78")
+
+# WRITE OUT AND COUNT
+write.csv(D38.1, "D38_merged_ICI.csv")
+write.csv(D58.1, "D58_merged_ICI.csv")
+write.csv(D68.1, "D68_merged_ICI.csv")
+write.csv(D78.1, "D78_merged_ICI.csv")
+```
+
+
+```{r}
+# HERE ARE THE ONSE S THAT ONLY INCLUIDE THE ICIMAPPIG LINES
+library(readxl)
+D38L_2 <- read_excel("ALL_merged_ICI.xlsx", sheet = "D38_L")
+D38M_2 <- read_excel("ALL_merged_ICI.xlsx", sheet = "D38_M")
+D58L_2 <- read_excel("ALL_merged_ICI.xlsx", sheet = "D58_L")
+D58M_2 <- read_excel("ALL_merged_ICI.xlsx", sheet = "D58_M")
+D68L_2 <- read_excel("ALL_merged_ICI.xlsx", sheet = "D68_L")
+D68M_2 <- read_excel("ALL_merged_ICI.xlsx", sheet = "D68_M")
+D78L_2 <- read_excel("ALL_merged_ICI.xlsx", sheet = "D78_L")
+D78M_2 <- read_excel("ALL_merged_ICI.xlsx", sheet = "D78_M")
+```
+
+calculate chi-squares and p-values for lines 
+```{r}
+################
+# chi-square calculation
+for (i in 1:nrow(D38L_2)) {
+    D38L_2[i,11] <- ((D38L_2[i,2] - D38L_2[i,8])^2)/D38L_2[i,8] + ((D38L_2[i,3] - D38L_2[i,9])^2)/D38L_2[i,9] + ((D38L_2[i,4] - D38L_2[i,10])^2)/D38L_2[i,10] 
+}
+
+for (i in 1:nrow(D58L_2)) {
+    D58L_2[i,11] <- ((D58L_2[i,2] - D58L_2[i,8])^2)/D58L_2[i,8] + ((D58L_2[i,3] - D58L_2[i,9])^2)/D58L_2[i,9] + ((D58L_2[i,4] - D58L_2[i,10])^2)/D58L_2[i,10] 
+}
+
+for (i in 1:nrow(D68L_2)) {
+    D68L_2[i,11] <- ((D68L_2[i,2] - D68L_2[i,8])^2)/D68L_2[i,8] + ((D68L_2[i,3] - D68L_2[i,9])^2)/D68L_2[i,9] + ((D68L_2[i,4] - D68L_2[i,10])^2)/D68L_2[i,10] 
+}
+
+for (i in 1:nrow(D78L_2)) {
+    D78L_2[i,11] <- ((D78L_2[i,2] - D78L_2[i,8])^2)/D78L_2[i,8] + ((D78L_2[i,3] - D78L_2[i,9])^2)/D78L_2[i,9] + ((D78L_2[i,4] - D78L_2[i,10])^2)/D78L_2[i,10] 
+}
+
+
+############
+# p-value calculation
+for (i in 1:nrow(D38L_2)) {
+  D38L_2[i,12] <- pchisq(D38L_2[[i,11]], df=2, lower.tail = FALSE)
+}
+
+for (i in 1:nrow(D58L_2)) {
+  D58L_2[i,12] <- pchisq(D58L_2[[i,11]], df=2, lower.tail = FALSE)
+}
+
+for (i in 1:nrow(D68L_2)) {
+  D68L_2[i,12] <- pchisq(D68L_2[[i,11]], df=2, lower.tail = FALSE)
+}
+
+for (i in 1:nrow(D78L_2)) {
+  D78L_2[i,12] <- pchisq(D78L_2[[i,11]], df=2, lower.tail = FALSE)
+}
+
+
+##################
+#### distortion test and line number calculation 
+l38_name <- NULL
+l38_name_drop <- NULL
+l38_number <- NULL
+for (i in 1:nrow(D38L_2)) {
+  if (as.numeric(D38L_2[i,12]) < 0.05/nrow(D38L_2)) {
+    D38L_2[i,13] = "Distorted"
+    l38_name_drop = c(l38_name_drop, D38L_2[[i,1]])
+  }
+  else {
+    D38L_2[i,13] = "OK"
+    l38_name = c(l38_name, D38L_2[[i,1]])
+    l38_number = c(l38_number,i)
+  }
+} 
+
+
+l58_name <- NULL
+l58_name_drop <- NULL
+l58_number <- NULL
+for (i in 1:nrow(D58L_2)) {
+  if (as.numeric(D58L_2[i,12]) < 0.05/nrow(D58L_2)) {
+    D58L_2[i,13] = "Distorted"
+    l58_name_drop = c(l58_name_drop, D58L_2[[i,1]])
+  }
+  else {
+    D58L_2[i,13] = "OK"
+    l58_name = c(l58_name, D58L_2[[i,1]])
+    l58_number = c(l58_number,i)
+  }
+} 
+
+
+l68_name <- NULL
+l68_name_drop <- NULL
+l68_number <- NULL
+for (i in 1:nrow(D68L_2)) {
+  if (as.numeric(D68L_2[i,12]) < 0.05/nrow(D68L_2)) {
+    D68L_2[i,13] = "Distorted"
+    l68_name_drop = c(l68_name_drop, D68L_2[[i,1]])
+  }
+  else {
+    D68L_2[i,13] = "OK"
+    l68_name = c(l68_name, D68L_2[[i,1]])
+    l68_number = c(l68_number,i)
+  }
+} 
+
+
+l78_name <- NULL
+l78_name_drop <- NULL
+l78_number <- NULL
+for (i in 1:nrow(D78L_2)) {
+  if (as.numeric(D78L_2[i,12]) < 0.05/nrow(D78L_2)) {
+    D78L_2[i,13] = "Distorted"
+    l78_name_drop = c(l78_name_drop, D78L_2[[i,1]])
+  }
+  else {
+    D78L_2[i,13] = "OK"
+    l78_name = c(l78_name, D78L_2[[i,1]])
+    l78_number = c(l78_number,i)
+  }
+} 
+
+
+length(l38_name)
+length(l38_name_drop)
+length(l58_name)
+length(l58_name_drop)
+length(l68_name)
+length(l68_name_drop)
+length(l78_name)
+length(l78_name_drop)
+
+# the lines that with too little introgression are not the concren, this can simply due to the small density marker
+# The ones that has a lot of introgression are the ones that can give problem 
+# may use 0.05 as the threshold and then manually look at them
+
+write.csv(D38L_2, "D38L_sdtest.csv")
+write.csv(D58L_2, "D58L_sdtest.csv")
+write.csv(D68L_2, "D68L_sdtest.csv")
+write.csv(D78L_2, "D78L_sdtest.csv")
+```
+
+
+ look at AB and BB together
+```{r}
+# how about look at BB and AB together?
+names(D38L_2)[14] <- "chi_sqaure.1"
+names(D58L_2)[14] <- "chi_sqaure.1"
+names(D68L_2)[14] <- "chi_sqaure.1"
+names(D78L_2)[14] <- "chi_sqaure.1"
+
+names(D38L_2)[15] <- "p_value.1"
+names(D58L_2)[15] <- "p_value.1"
+names(D68L_2)[15] <- "p_value.1"
+names(D78L_2)[15] <- "p_value.1"
+
+names(D38L_2)[16] <- "Distorted.1?"
+names(D58L_2)[16] <- "Distorted.1?"
+names(D68L_2)[16] <- "Distorted.1?"
+names(D78L_2)[16] <- "Distorted.1?"
+
+
+# chi-square calculation
+for (i in 1:nrow(D38L_2)) {
+    D38L_2[i,14] <- (((D38L_2[i,2]+D38L_2[i,3]) - (D38L_2[i,8]+D38L_2[i,9]))^2)/(D38L_2[i,8]+D38L_2[i,9]) + ((D38L_2[i,4] - D38L_2[i,10])^2)/D38L_2[i,10] 
+}
+
+for (i in 1:nrow(D58L_2)) {
+    D58L_2[i,14] <- (((D58L_2[i,2]+D58L_2[i,3]) - (D58L_2[i,8]+D58L_2[i,9]))^2)/(D58L_2[i,8]+D58L_2[i,9]) + ((D58L_2[i,4] - D58L_2[i,10])^2)/D58L_2[i,10] 
+}
+
+for (i in 1:nrow(D68L_2)) {
+    D68L_2[i,14] <- (((D68L_2[i,2]+D68L_2[i,3]) - (D68L_2[i,8]+D68L_2[i,9]))^2)/(D68L_2[i,8]+D68L_2[i,9]) + ((D68L_2[i,4] - D68L_2[i,10])^2)/D68L_2[i,10] 
+}
+
+for (i in 1:nrow(D78L_2)) {
+    D78L_2[i,14] <- (((D78L_2[i,2]+D78L_2[i,3]) - (D78L_2[i,8]+D78L_2[i,9]))^2)/(D78L_2[i,8]+D78L_2[i,9]) + ((D78L_2[i,4] - D78L_2[i,10])^2)/D78L_2[i,10] 
+}
+
+# p-value calculation
+for (i in 1:nrow(D38L_2)) {
+  D38L_2[i,15] <- pchisq(D38L_2[[i,14]], df=1, lower.tail = FALSE)
+}
+
+for (i in 1:nrow(D58L_2)) {
+  D58L_2[i,15] <- pchisq(D58L_2[[i,14]], df=1, lower.tail = FALSE)
+}
+
+for (i in 1:nrow(D68L_2)) {
+  D68L_2[i,15] <- pchisq(D68L_2[[i,14]], df=1, lower.tail = FALSE)
+}
+
+for (i in 1:nrow(D78L_2)) {
+  D78L_2[i,15] <- pchisq(D78L_2[[i,14]], df=1, lower.tail = FALSE)
+}
+
+
+
+##################
+#### distortion test and line number calculation 
+l38_name <- NULL
+l38_name_drop <- NULL
+l38_number <- NULL
+for (i in 1:nrow(D38L_2)) {
+  if (as.numeric(D38L_2[i,15]) < 0.05/nrow(D38L_2)) {
+    D38L_2[i,15] = "Distorted"
+    l38_name_drop = c(l38_name_drop, D38L_2[[i,1]])
+  }
+  else {
+    D38L_2[i,16] = "OK"
+    l38_name = c(l38_name, D38L_2[[i,1]])
+    l38_number = c(l38_number,i)
+  }
+} 
+
+
+l58_name <- NULL
+l58_name_drop <- NULL
+l58_number <- NULL
+for (i in 1:nrow(D58L_2)) {
+  if (as.numeric(D58L_2[i,15]) < 0.05/nrow(D58L_2)) {
+    D58L_2[i,16] = "Distorted"
+    l58_name_drop = c(l58_name_drop, D58L_2[[i,1]])
+  }
+  else {
+    D58L_2[i,16] = "OK"
+    l58_name = c(l58_name, D58L_2[[i,1]])
+    l58_number = c(l58_number,i)
+  }
+} 
+
+
+l68_name <- NULL
+l68_name_drop <- NULL
+l68_number <- NULL
+for (i in 1:nrow(D68L_2)) {
+  if (as.numeric(D68L_2[i,15]) < 0.05/nrow(D68L_2)) {
+    D68L_2[i,16] = "Distorted"
+    l68_name_drop = c(l68_name_drop, D68L_2[[i,1]])
+  }
+  else {
+    D68L_2[i,16] = "OK"
+    l68_name = c(l68_name, D68L_2[[i,1]])
+    l68_number = c(l68_number,i)
+  }
+} 
+
+
+l78_name <- NULL
+l78_name_drop <- NULL
+l78_number <- NULL
+for (i in 1:nrow(D78L_2)) {
+  if (as.numeric(D78L_2[i,15]) < 0.05/nrow(D78L_2)) {
+    D78L_2[i,16] = "Distorted"
+    l78_name_drop = c(l78_name_drop, D78L_2[[i,1]])
+  }
+  else {
+    D78L_2[i,16] = "OK"
+    l78_name = c(l78_name, D78L_2[[i,1]])
+    l78_number = c(l78_number,i)
+  }
+} 
+
+
+length(l38_name)
+length(l38_name_drop)
+length(l58_name)
+length(l58_name_drop)
+length(l68_name)
+length(l68_name_drop)
+length(l78_name)
+length(l78_name_drop)
+
+write.csv(D38L_2, "D38L_intro_together.csv")
+write.csv(D58L_2, "D58L_intro_together.csv")
+write.csv(D68L_2, "D68L_intro_together.csv")
+write.csv(D78L_2, "D78L_intro_together.csv")
+```
+
+
+conduct segregation test on markers
+```{r}
+# NO lines that with too many NA that need to be deleted. 
+# run again, DRIL58.035 should not being removed. 
+# 2019-11-1 add DRIL58.131 because there are too many NA, add some lines for DRIL38 population
+D38_DROP <- c("DRIL38.197", "DRIL38.209", "DRIL38.218", "DRIL38.060", "DRIL38.172")
+D58_DROP <- c("DRIL58.048", "DRIL58.122", "DRIL58.126", "DRIL58.141", "DRIL58.155", "DRIL58.013", "DRIL58.066", "DRIL58.168", "DRIL58.058", "DRIL58.011", "DRIL58.037", "DRIL58.182", "DRIL58.156", "DRIL58.173", "DRIL58.080", "DRIL58.118", "DRIL58.120", "DRIL58.161", "DRIL58.063", "DRIL58.131")
+D68_DROP <- "DRIL68.100"
+
+# Create new dataframe with only the lines we want to include and exclude the lines with srgregation distortion
+# D38.1, D58.1, to D78.1 are the dataframe that have information in .
+# D38 and D78, we can use the original population
+# DRIL58 and 68 need some modification
+
+D38.2 <- D38.1[!D38.1$D38 %in% D38_DROP,]
+D58.2 <- D58.1[!D58.1$D58 %in% D58_DROP,]
+D68.2 <- D68.1[!D68.1$D68 %in% D68_DROP,]
+write.csv(D38.2, "D38_sdline_droped.csv")
+write.csv(D58.2, "D58_sdline_droped.csv")
+write.csv(D68.2, "D68_sdline_droped.csv")
+
+
+library(readxl)
+D58_3 <- read_excel("all_sdline_droped.xlsx", sheet = "D58.3") # it is updated
+D68_3 <- read_excel("all_sdline_droped.xlsx", sheet = "D68.3")
+D38_3 <- read_excel("all_sdline_droped.xlsx", sheet = "D38.3")
+D78_3 <- D78_M
+```
+
+
+find the segregation distoted markers
+```{r}
+# calculte chi-squares for markers
+# note that for markers, AB and BB need to be analyzed together
+
+ for (i in 2:ncol(D38_3)) {
+   D38_3[10,i] <-  ((as.numeric(D38_3[1,i]) - as.numeric(D38_3[7,i]))^2)/ as.numeric(D38_3[7,i]) + 
+ (((as.numeric(D38_3[2,i]) + as.numeric(D38_3[3,i]))-(as.numeric(D38_3[8,i]) + as.numeric(D38_3[9,i])))^2)/(as.numeric(D38_3[8,i])+ as.numeric(D38_3[9,i]))}
+
+ for (i in 2:ncol(D58_3)) {
+   D58_3[10,i] <-  ((as.numeric(D58_3[1,i]) - as.numeric(D58_3[7,i]))^2)/ as.numeric(D58_3[7,i]) + 
+ (((as.numeric(D58_3[2,i]) + as.numeric(D58_3[3,i]))-(as.numeric(D58_3[8,i]) + as.numeric(D58_3[9,i])))^2)/(as.numeric(D58_3[8,i])+ as.numeric(D58_3[9,i]))}
+
+ for (i in 2:ncol(D68_3)) {
+   D68_3[10,i] <-  ((as.numeric(D68_3[1,i]) - as.numeric(D68_3[7,i]))^2)/ as.numeric(D68_3[7,i]) + 
+ (((as.numeric(D68_3[2,i]) + as.numeric(D68_3[3,i]))-(as.numeric(D68_3[8,i]) + as.numeric(D68_3[9,i])))^2)/(as.numeric(D68_3[8,i])+ as.numeric(D68_3[9,i]))}
+
+ for (i in 2:ncol(D78_3)) {
+   D78_3[10,i] <-  ((as.numeric(D78_3[1,i]) - as.numeric(D78_3[7,i]))^2)/ as.numeric(D78_3[7,i]) + 
+ (((as.numeric(D78_3[2,i]) + as.numeric(D78_3[3,i]))-(as.numeric(D78_3[8,i]) + as.numeric(D78_3[9,i])))^2)/(as.numeric(D78_3[8,i])+ as.numeric(D78_3[9,i]))}
+
+
+# clculte p-valur for markers
+
+
+for ( i in 2:ncol(D38_3)) {
+  D38_3[11,i] <- pchisq(as.numeric(D38_3[[10,i]]), df=1, lower.tail = FALSE)
+}
+
+for ( i in 2:ncol(D58_3)) {
+  D58_3[11,i] <- pchisq(as.numeric(D58_3[[10,i]]), df=1, lower.tail = FALSE)
+}
+
+for ( i in 2:ncol(D68_3)) {
+  D68_3[11,i] <- pchisq(as.numeric(D68_3[[10,i]]), df=1, lower.tail = FALSE)
+}
+
+for ( i in 2:ncol(D78_3)) {
+  D78_3[11,i] <- pchisq(as.numeric(D78_3[[10,i]]), df=1, lower.tail = FALSE)
+}
+
+
+###
+# After trail, 0.01 would be our threshold
+
+##38
+m38 <- NULL
+m38_name <- NULL
+m38_name_drop <- NULL
+for (i in 2:ncol(D38_3)){
+  if (as.numeric(D38_3[11,i]) < 0.01/(ncol(D38_3)-1)){
+     D38_3[12,i] = "Distorted"
+     m38_name_drop <- c(m38_name_drop, names(D38_3[i]))
+  } else {
+  D38_3[12,i] = "OK" 
+  m38 = c(m38,i)
+  m38_name <- c(m38_name, names(D38_3[i]))
+  }
+}
+
+
+##58
+m58 <- NULL
+m58_name <- NULL
+m58_name_drop <- NULL
+for (i in 2:ncol(D58_3)){
+  if (as.numeric(D58_3[11,i]) < 0.01/(ncol(D58_3)-1)){
+    D58_3[12,i] = "Distorted"
+    m58_name_drop <- c(m58_name_drop, names(D58_3[i]))
+  }
+  else {
+    D58_3[12,i] = "OK"
+    m58 = c(m58,i)
+    m58_name <- c(m58_name, names(D58_3[i]))
+  }
+}
+
+##68
+m68 <- NULL
+m68_name <- NULL
+m68_name_drop <- NULL
+for (i in 2:ncol(D68_3)){
+  if (as.numeric(D68_3[11,i]) < 0.01/(ncol(D68_3)-1)){
+    D68_3[12,i] = "Distorted"
+    m68_name_drop <- c(m68_name_drop, names(D68_3[i]))
+  }
+  else {
+    D68_3[12,i] = "OK"
+    m68 = c(m68,i)
+    m68_name <- c(m68_name, names(D68_3[i]))
+  }
+}
+
+##78
+m78 <- NULL
+m78_name <- NULL
+m78_name_drop <- NULL
+for (i in 2:ncol(D78_3)){
+  if (as.numeric(D78_3[11,i]) < 0.01/(ncol(D78_3)-1)){
+    D78_3[12,i] = "Distorted"
+    m78_name_drop <- c(m78_name_drop, names(D78_3[i]))
+  }
+  else {
+    D78_3[12,i] = "OK"
+    m78 = c(m78,i)
+    m78_name <- c(m78_name, names(D78_3[i]))
+  }
+}
+
+
+m38_name_drop
+m58_name_drop
+m68_name_drop
+m78_name_drop
+
+write.csv(D38_3, "D38_final_marker.csv")
+write.csv(D58_3, "D58_final_marker.csv")
+write.csv(D68_3, "D68_final_marker.csv")
+write.csv(D78_3, "D78_final_marker.csv")
+```
